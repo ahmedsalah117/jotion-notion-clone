@@ -4,6 +4,7 @@ import { ChevronLeft, MenuIcon } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import React, { useEffect, useRef, useState } from 'react'
 import { useMediaQuery } from 'usehooks-ts'
+import UserItem from "./UserItem";
 const Navigation = () => {
 const pathName = usePathname()
   const isMobile = useMediaQuery("(max-width: 768px)")
@@ -122,7 +123,7 @@ const [isCollapsed, setIsCollapsed] = useState(isMobile)
         </div>
 
         <div>
-          <p>Action Items</p>
+          <UserItem />
         </div>
 
         <div className="mt-4">
