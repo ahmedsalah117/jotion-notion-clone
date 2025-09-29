@@ -5,27 +5,29 @@ import { usePathname } from 'next/navigation'
 import React, { useEffect, useRef, useState } from 'react'
 import { useMediaQuery } from 'usehooks-ts'
 import UserItem from "./UserItem";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 const Navigation = () => {
-const pathName = usePathname()
-  const isMobile = useMediaQuery("(max-width: 768px)")
-  const isResizingRef = useRef(false)
+  const pathName = usePathname();
+  const isMobile = useMediaQuery("(max-width: 768px)");
+  const isResizingRef = useRef(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
-const navbarRef = useRef<HTMLDivElement>(null);
-const [isResetting, setIsResetting] = useState(false)
-const [isCollapsed, setIsCollapsed] = useState(isMobile)
-
+  const navbarRef = useRef<HTMLDivElement>(null);
+  const [isResetting, setIsResetting] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(isMobile);
+  const documents = useQuery(api.documents.get);
   const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
-  event.preventDefault()
-  event.stopPropagation()
+    event.preventDefault();
+    event.stopPropagation();
     isResizingRef.current = true;
-    
+
     document.addEventListener("mousemove", handleMouseMove);
     document.addEventListener("mouseup", handleMouseUp);
-}
+  };
 
   function handleMouseMove(event: MouseEvent) {
     if (!isResizingRef.current) return;
-    
+
     // so here we are simply following the mouse coordinates in the x-axis and adjusting the width of the sidebar and the navbar accordingly so that we can have a resizable sidebar.
     let newWidth = event.clientX;
     // forcing a minimum width for the sidebar
@@ -50,31 +52,24 @@ const [isCollapsed, setIsCollapsed] = useState(isMobile)
 
     document.removeEventListener("mousemove", handleMouseMove);
     document.removeEventListener("mouseup", handleMouseUp);
-
   }
-// this will reset the sidebar width to its original width.
+  // this will reset the sidebar width to its original width.
   function resetSidebarWidth() {
-
     if (sidebarRef.current && navbarRef.current) {
       setIsCollapsed(false);
       // this is to animate the sidebar width while resetting it to its original width.
-      setIsResetting(true)
-      
-      sidebarRef.current.style.width = isMobile ? "100%": "240px";
-      navbarRef.current.style.left = isMobile? "100%" : "240px";
-      navbarRef.current.style.width = isMobile ? "0": "calc(100% - 240px)";
+      setIsResetting(true);
+
+      sidebarRef.current.style.width = isMobile ? "100%" : "240px";
+      navbarRef.current.style.left = isMobile ? "100%" : "240px";
+      navbarRef.current.style.width = isMobile ? "0" : "calc(100% - 240px)";
     }
-    setTimeout(()=>{
-      setIsResetting(false)
-    }, 300)
+    setTimeout(() => {
+      setIsResetting(false);
+    }, 300);
 
-
-// here we are setting the isResetting state to false after the transition is complete just because we are using a transition animation on the sidebar while it resets, and we do not want this animation to happen anytime especially during a manual resize of the sidebar width. we just want it to happen only when resetting the sidebar width via a single click on the right border of the sidebar. we use 300ms in the timeout function to make sure the transition is complete before setting the isResetting state to false. since the transition duration is already 300ms.
-
-
-
+    // here we are setting the isResetting state to false after the transition is complete just because we are using a transition animation on the sidebar while it resets, and we do not want this animation to happen anytime especially during a manual resize of the sidebar width. we just want it to happen only when resetting the sidebar width via a single click on the right border of the sidebar. we use 300ms in the timeout function to make sure the transition is complete before setting the isResetting state to false. since the transition duration is already 300ms.
   }
-
 
   function collapseSidebar() {
     if (sidebarRef.current && navbarRef.current) {
@@ -84,9 +79,9 @@ const [isCollapsed, setIsCollapsed] = useState(isMobile)
       navbarRef.current.style.left = "0";
       navbarRef.current.style.width = "100%";
     }
-    setTimeout(()=>{
-      setIsResetting(false)
-    }, 300)
+    setTimeout(() => {
+      setIsResetting(false);
+    }, 300);
   }
 
   // Tracking the isMobile state and collapsing or resetting the sidebar width accordingly.
@@ -96,13 +91,13 @@ const [isCollapsed, setIsCollapsed] = useState(isMobile)
     } else {
       resetSidebarWidth();
     }
-  }, [isMobile])
+  }, [isMobile]);
 
-  useEffect(()=>{
-    if(isMobile){
+  useEffect(() => {
+    if (isMobile) {
       collapseSidebar();
     }
-  }, [pathName, isMobile])
+  }, [pathName, isMobile]);
 
   return (
     <>
@@ -127,7 +122,9 @@ const [isCollapsed, setIsCollapsed] = useState(isMobile)
         </div>
 
         <div className="mt-4">
-          <p>Documents</p>
+          {documents?.map((doc) => {
+            return <p key={doc._id}>{doc.title}</p>;
+          })}
         </div>
 
         <div
@@ -142,7 +139,7 @@ const [isCollapsed, setIsCollapsed] = useState(isMobile)
       </div>
     </>
   );
-}
+};
 
 export default Navigation
 
