@@ -1,12 +1,14 @@
 "use client"
 import { cn } from '@/lib/utils'
-import { ChevronLeft, MenuIcon } from 'lucide-react'
-import { usePathname } from 'next/navigation'
-import React, { useEffect, useRef, useState } from 'react'
-import { useMediaQuery } from 'usehooks-ts'
+import { ChevronLeft, MenuIcon, PlusCircle, Search, Settings } from "lucide-react";
+import { usePathname } from "next/navigation";
+import React, { useEffect, useRef, useState } from "react";
+import { useMediaQuery } from "usehooks-ts";
 import UserItem from "./UserItem";
-import { useQuery } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import Item from "./Item";
+import { toast } from "sonner";
 const Navigation = () => {
   const pathName = usePathname();
   const isMobile = useMediaQuery("(max-width: 768px)");
@@ -16,6 +18,7 @@ const Navigation = () => {
   const [isResetting, setIsResetting] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(isMobile);
   const documents = useQuery(api.documents.get);
+  const create = useMutation(api.documents.create);
   const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
     event.preventDefault();
     event.stopPropagation();
@@ -84,6 +87,14 @@ const Navigation = () => {
     }, 300);
   }
 
+  function handleCreate() {
+    const promise = create({ title: "Untitled" });
+    toast.promise(promise, {
+      loading: "Creating a new note...",
+      success: "New note created!",
+      error: "Failed to create a new note.",
+    });
+  }
   // Tracking the isMobile state and collapsing or resetting the sidebar width accordingly.
   useEffect(() => {
     if (isMobile) {
@@ -119,6 +130,9 @@ const Navigation = () => {
 
         <div>
           <UserItem />
+          <Item onClick={() => {}} icon={Search} label="Search" isSearch />
+          <Item onClick={() => {}} icon={Settings} label="Settings" />
+          <Item onClick={handleCreate} icon={PlusCircle} label="New Page" />
         </div>
 
         <div className="mt-4">
