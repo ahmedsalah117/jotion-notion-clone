@@ -21,11 +21,12 @@ interface ItemProps {
   level?: number;
   onExpand?: () => void;
   label: string;
-  onClick: () => void;
+  onClick?: () => void;
   icon: LucideIcon;
+  containerClassName?: string;
 }
 
-const Item = ({ icon: Icon, label, onClick, id, documentIcon, active, expanded, isSearch, level = 0, onExpand }: ItemProps) => {
+const Item = ({ icon: Icon, label, onClick, id, documentIcon, active, expanded, isSearch, level = 0, onExpand, containerClassName }: ItemProps) => {
   const ChevronIcon = expanded ? ChevronDown : ChevronRight;
   const router = useRouter();
   const { user } = useUser();
@@ -38,7 +39,7 @@ const Item = ({ icon: Icon, label, onClick, id, documentIcon, active, expanded, 
 
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
-    onClick();
+    onClick?.();
   };
 
   const onCreate = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -72,7 +73,11 @@ const Item = ({ icon: Icon, label, onClick, id, documentIcon, active, expanded, 
       onClick={handleClick}
       role="button"
       style={{ paddingLeft: level ? `${level * 12 + 12}px` : "12px" }}
-      className={cn("group cursor-pointer min-h-[27px] text-sm py-1 pr-3 w-full hover:bg-primary/5 flex items-center text-muted-foreground font-medium", active && "bg-primary/5 text-primary")}
+      className={cn(
+        "group cursor-pointer min-h-[27px] text-sm py-1 pr-3 w-full hover:bg-primary/5 flex items-center text-muted-foreground font-medium",
+        active && "bg-primary/5 text-primary",
+        containerClassName,
+      )}
     >
       {!!id && (
         <div role="button" className="h-full rounded-sm hover:bg-neutral-300 dark:bg-neutral-600 mr-1" onClick={handleExpand}>
@@ -98,7 +103,7 @@ const Item = ({ icon: Icon, label, onClick, id, documentIcon, active, expanded, 
               </div>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-60" align="start" side="right" forceMount>
-              <DropdownMenuItem onClick={onArchive}>
+              <DropdownMenuItem onClick={onArchive} className="cursor-pointer">
                 <Trash className="h-4 w-4 mr-2" />
                 Delete
               </DropdownMenuItem>

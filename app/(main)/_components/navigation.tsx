@@ -1,6 +1,6 @@
 "use client"
 import { cn } from '@/lib/utils'
-import { ChevronLeft, MenuIcon, PlusCircle, Search, Settings } from "lucide-react";
+import { ChevronLeft, MenuIcon, Plus, PlusCircle, Search, Settings, Trash } from "lucide-react";
 import { usePathname } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
 import { useMediaQuery } from "usehooks-ts";
@@ -9,8 +9,9 @@ import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import Item from "./Item";
 import { toast } from "sonner";
-import { getSidebar } from "@/convex/documents";
 import DocumentList from "./DocumentList";
+import TrashBox from "./TrashBox";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 const Navigation = () => {
   const pathName = usePathname();
   const isMobile = useMediaQuery("(max-width: 768px)");
@@ -139,6 +140,16 @@ const Navigation = () => {
 
         <div className="mt-4">
           <DocumentList />
+          <Item containerClassName="mt-2" onClick={handleCreate} icon={Plus} label="Add a page" />
+
+          <DropdownMenu>
+            <DropdownMenuTrigger className="w-full mt-4">
+              <Item label="Trash" icon={Trash} />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="p-0 w-72 " side={isMobile ? "bottom" : "right"}>
+              <TrashBox />
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         <div

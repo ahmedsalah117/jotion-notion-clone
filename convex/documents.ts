@@ -1,7 +1,15 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { ActionCtx, mutation, query, QueryCtx } from "./_generated/server";
 import { Doc, Id } from "./_generated/dataModel";
 import { runInContext } from "vm";
+
+async function checkIdentityHandler(ctx: ActionCtx | QueryCtx) {
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) {
+    throw new Error("Unauthorized");
+  }
+  return identity;
+}
 
 export const archive = mutation({
   args: { id: v.id("documents") },
@@ -45,12 +53,11 @@ export const archive = mutation({
       isArchived: true,
     });
 
-    recursiveArchive(args.id);
+    await recursiveArchive(args.id);
 
     return document;
   },
 });
-
 
 export const getSidebar = query({
   args: {
@@ -79,15 +86,14 @@ export const getSidebar = query({
 export const create = mutation({
   args: {
     title: v.string(),
-    parentDocument:v.optional(v.id("documents")),
+    parentDocument: v.optional(v.id("documents")),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
 
     if (!identity) {
-      throw new Error("Unauthorized")
+      throw new Error("Unauthorized");
     }
-
 
     const userId = identity.subject;
 
@@ -96,10 +102,106 @@ export const create = mutation({
       parentDocument: args.parentDocument,
       userId,
       isArchived: false,
-      isPublished:false
-    })
-
+      isPublished: false,
+    });
 
     return document;
-  }
-})
+  },
+});
+
+export const getTrashItems = query({
+  handler: async (ctx: QueryCtx) => {
+    const identity = await checkIdentityHandler(ctx);
+
+    const userId = identity.subject;
+
+    const documents = await ctx.db
+      .query("documents")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .filter((q) => q.eq(q.field("isArchived"), true))
+      .order("desc")
+      .collect();
+
+    return documents;
+  },
+});
+
+export const restoreFromTrash = mutation({
+  args: { id: v.id("documents") },
+  handler: async (ctx, args) => {
+    const identity = await checkIdentityHandler(ctx);
+
+    const userId = identity.subject;
+
+    const existingDocument = await ctx.db.get(args.id);
+
+    if (!existingDocument) {
+      throw new Error("Document not found");
+    }
+
+    if (existingDocument.userId !== userId) {
+      throw new Error("Not authorized to restore this document!");
+    }
+
+    const recursiveRestore = async (parentDocId: Id<"documents">) => {
+      const childDocs = await ctx.db
+        .query("documents")
+        .withIndex("by_user_parent", (q) => {
+          return q.eq("userId", userId).eq("parentDocument", parentDocId);
+        })
+        .collect();
+
+      for (const child of childDocs) {
+        await ctx.db.patch(child._id, {
+          isArchived: false,
+        });
+        await recursiveRestore(child._id);
+      }
+    };
+
+    const options: Partial<Doc<"documents">> = {
+      isArchived: false,
+    };
+
+    // If the document being restored has a parent that is still archived,
+    // remove the parent relationship to prevent inconsistent state where
+    // a child document is restored but its parent remains in trash.
+    // This makes the document accessible at the root level instead.
+    if (existingDocument.parentDocument) {
+      const parent = await ctx.db.get(existingDocument.parentDocument);
+
+      if (parent?.isArchived) {
+        options.parentDocument = undefined;
+      }
+    }
+
+    const document = await ctx.db.patch(args.id, options);
+
+    await recursiveRestore(args.id);
+
+    return document;
+  },
+});
+
+export const deleteDocPermanently = mutation({
+  args: { id: v.id("documents") },
+  handler: async (ctx, args) => {
+    const identity = await checkIdentityHandler(ctx);
+
+    const userId = identity.subject;
+
+    const existingDocument = await ctx.db.get(args.id);
+
+    if (!existingDocument) {
+      throw new Error("Document not found");
+    }
+
+    if (existingDocument.userId !== userId) {
+      throw new Error("Not authorized to delete this document!");
+    }
+
+    const document = await ctx.db.delete(args.id);
+
+    return document;
+  },
+}); 
