@@ -1,6 +1,56 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { Doc, Id } from "./_generated/dataModel";
+import { runInContext } from "vm";
+
+export const archive = mutation({
+  args: { id: v.id("documents") },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
+
+    const userId = identity.subject;
+
+    const existingDocument = await ctx.db.get(args.id);
+
+    if (!existingDocument) {
+      throw new Error("Document not found");
+    }
+
+    if (existingDocument.userId !== userId) {
+      throw new Error("Not authorized to archive this document!");
+    }
+
+    const recursiveArchive = async (parentDocumentId: Id<"documents">) => {
+      const childDocs = await ctx.db
+        .query("documents")
+        .withIndex("by_user_parent", (q) => {
+          return q.eq("userId", userId).eq("parentDocument", parentDocumentId);
+        })
+        .collect();
+
+      //we are using a for of loop instead of a map method so that we can use promises within the loop.
+
+      // looping over the direct children of the parent document, and making them archived, and then recursively looping over the children of the direct child so that we can archive them as well. This means that whenever we archive a doc, all of its direct children and their children will be archived as well.
+      for (const child of childDocs) {
+        await ctx.db.patch(child._id, { isArchived: true });
+        await recursiveArchive(child._id);
+      }
+    };
+
+    const document = await ctx.db.patch(args.id, {
+      isArchived: true,
+    });
+
+    recursiveArchive(args.id);
+
+    return document;
+  },
+});
+
 
 export const getSidebar = query({
   args: {
