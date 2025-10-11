@@ -12,7 +12,9 @@ import { toast } from "sonner";
 import DocumentList from "./DocumentList";
 import TrashBox from "./TrashBox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useSearch } from "@/hooks/use-search";
 const Navigation = () => {
+  const onOpenSearch = useSearch((store) => store.onOpen);
   const pathName = usePathname();
   const isMobile = useMediaQuery("(max-width: 768px)");
   const isResizingRef = useRef(false);
@@ -133,7 +135,7 @@ const Navigation = () => {
 
         <div>
           <UserItem />
-          <Item onClick={() => {}} icon={Search} label="Search" isSearch />
+          <Item onClick={onOpenSearch} icon={Search} label="Search" isSearch />
           <Item onClick={() => {}} icon={Settings} label="Settings" />
           <Item onClick={handleCreate} icon={PlusCircle} label="New Page" />
         </div>

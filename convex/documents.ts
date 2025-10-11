@@ -59,6 +59,7 @@ export const archive = mutation({
   },
 });
 
+//This handler fetches all documents with respect to the parent child relationship.
 export const getSidebar = query({
   args: {
     parentDocument: v.optional(v.id("documents")),
@@ -204,4 +205,22 @@ export const deleteDocPermanently = mutation({
 
     return document;
   },
-}); 
+});
+
+
+// this fetches all unarchived documents for the logged in user, disregarding the parent child relationship.
+export const getSearch = query({
+  handler: async (ctx) => {
+    const identity = await checkIdentityHandler(ctx);
+    const userId = identity.subject;
+
+    const documents = await ctx.db
+      .query("documents")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .filter((q) => q.eq(q.field("isArchived"), false))
+      .order("desc")
+      .collect();
+
+    return documents;
+  },
+});

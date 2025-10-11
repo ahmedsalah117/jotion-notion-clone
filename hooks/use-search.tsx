@@ -1,0 +1,20 @@
+import { Search } from "lucide-react";
+import { create } from "zustand"
+
+
+type SearchStore = {
+  isOpen: boolean;
+  onOpen: () => void;
+  onClose: () => void;
+  onToggle: () => void;
+}
+
+
+export const useSearch = create<SearchStore>((set, get) => {
+  return {
+    isOpen: false,
+    onOpen: () => set({ isOpen: true }),
+    onClose: () => set({ isOpen: false }),
+    onToggle: () => set({isOpen:!get().isOpen}),
+  }
+})
