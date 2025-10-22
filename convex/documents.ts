@@ -207,7 +207,6 @@ export const deleteDocPermanently = mutation({
   },
 });
 
-
 // this fetches all unarchived documents for the logged in user, disregarding the parent child relationship.
 export const getSearch = query({
   handler: async (ctx) => {
@@ -224,3 +223,65 @@ export const getSearch = query({
     return documents;
   },
 });
+
+export const getDocById = query({
+  args: { documentId: v.id("documents") },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    const userId = identity?.subject;
+    const document = await ctx.db.get(args.documentId);
+
+    if (!document) {
+      throw new Error("Not found");
+    }
+    // if the doc is published, return it to non-logged in users.
+    if (!document.isArchived && document.isPublished) {
+      return document;
+    }
+
+    if (!identity) {
+      throw new Error("Un authenticated");
+    }
+    // if the doc is not published , it can only be accessed by its author.
+
+    if (userId !== document.userId) {
+      throw new Error("Un authorized to view this document.");
+    }
+
+    return document;
+  },
+});
+
+
+export const updateDocument = mutation({
+  args: {
+    id: v.id("documents"),
+    title: v.optional(v.string()),
+    content: v.optional(v.string()),
+    coverImage: v.optional(v.string())
+    ,
+    icon: v.optional(v.string())
+    ,
+    isPublished: v.optional(v.boolean())
+
+  },
+  handler: async (ctx, args) => {
+    const identity = await checkIdentityHandler(ctx);
+    const userId = identity.subject;
+
+    const { id, ...rest } = args;
+    
+    const existingDocument = await ctx.db.get(id);
+
+    if(!existingDocument) {
+      throw new Error("Document not found");
+    }
+
+    if(existingDocument.userId !== userId) {
+      throw new Error("Not authorized to update this document!");
+    }
+
+ await ctx.db.patch(id, rest);
+
+  }
+})

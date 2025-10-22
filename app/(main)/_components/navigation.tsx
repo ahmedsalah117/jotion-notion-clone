@@ -1,7 +1,7 @@
 "use client"
 import { cn } from '@/lib/utils'
 import { ChevronLeft, MenuIcon, Plus, PlusCircle, Search, Settings, Trash } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
 import { useMediaQuery } from "usehooks-ts";
 import UserItem from "./UserItem";
@@ -14,7 +14,9 @@ import TrashBox from "./TrashBox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useSearch } from "@/hooks/use-search";
 import useSettings from "@/hooks/use-settings";
+import DocumentNavbar from "./DocumentNavbar";
 const Navigation = () => {
+  const params = useParams();
   const onOpenSearch = useSearch((store) => store.onOpen);
   const onOpenSettings = useSettings((store) => store.onOpen);
   const pathName = usePathname();
@@ -164,7 +166,11 @@ const Navigation = () => {
       </aside>
 
       <div ref={navbarRef} className={cn("absolute top-0 z-[99999] left-60 w-[calc(100%-240px)]", isResetting && "transition-all ease-in-out duration-300", isMobile && "left-0 w-full")}>
-        <nav className="bg-transparent px-3 py-2 w-full">{isCollapsed && <MenuIcon onClick={resetSidebarWidth} role="button" className="h-6 w-6 text-muted-foreground" />}</nav>
+        {!!params?.documentId ? (
+          <DocumentNavbar isCollapsed={isCollapsed} onResetWidth={resetSidebarWidth} />
+        ) : (
+          <nav className="bg-transparent px-3 py-2 w-full">{isCollapsed && <MenuIcon onClick={resetSidebarWidth} role="button" className="h-6 w-6 text-muted-foreground" />}</nav>
+        )}
       </div>
     </>
   );

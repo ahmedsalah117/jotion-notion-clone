@@ -8,9 +8,10 @@ import { DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@/
 import { useMutation } from "convex/react";
 import { ChevronDown, ChevronRight, Command, LucideIcon, MoreHorizontal, Plus, Trash } from "lucide-react";
 import { useRouter } from "next/navigation";
-import React from "react";
+import React, { useContext } from "react";
 import { toast } from "sonner";
 import { useUser } from "@clerk/clerk-react";
+import { EditDocumentContext } from "@/contexts/editDocumentContext";
 
 interface ItemProps {
   id?: Id<"documents">;
@@ -28,6 +29,7 @@ interface ItemProps {
 
 const Item = ({ icon: Icon, label, onClick, id, documentIcon, active, expanded, isSearch, level = 0, onExpand, containerClassName }: ItemProps) => {
   const ChevronIcon = expanded ? ChevronDown : ChevronRight;
+  const { document, isEditing, localDocTitle } = useContext(EditDocumentContext);
   const router = useRouter();
   const { user } = useUser();
   const create = useMutation(api.documents.create);
@@ -85,8 +87,8 @@ const Item = ({ icon: Icon, label, onClick, id, documentIcon, active, expanded, 
         </div>
       )}
       {documentIcon ? <div className="shrink-0 mr-2 text-[18px]">{documentIcon}</div> : <Icon className="h-[18px] mr-2 shrink-0 text-muted-foreground" />}
-
-      <span className="truncate">{label}</span>
+      {/* if the user is updating the document title, we use optimistic update to avoid calling the api handler many times on each key stroke */}
+      <span className="truncate">{isEditing && id === document?._id ? localDocTitle : label}</span>
 
       {isSearch && (
         <kbd className="ml-auto pointer-events-none opacity-100 inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
