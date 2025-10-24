@@ -52,19 +52,18 @@ const DocumentTitle = ({ initialData }: { initialData: Doc<"documents"> }) => {
   const onKeyDown = async (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
       // I will only call the update api handler when the user presses the enter key. (after finishing the typing)
-      try {
-        await  update({
-            id:initialData?._id
-            ,
-            title: localDocTitle ?? "Untitled"
-        })
-        disableInput();
-        
-      } catch (error) {
-        toast.error("Failed to update the document title!", {
-          description: "Please try again.",
+      
+        const promise = update({
+          id: initialData?._id,
+          title: localDocTitle ?? "Untitled",
         });
-      }
+        disableInput();
+
+        toast.promise(promise, {
+          loading: "Updating title...",
+          success: "Title updated!",
+          error: "Failed to update title.",
+        });
       
     }
   }
