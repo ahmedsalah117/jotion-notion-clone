@@ -252,36 +252,56 @@ export const getDocById = query({
   },
 });
 
-
 export const updateDocument = mutation({
   args: {
     id: v.id("documents"),
     title: v.optional(v.string()),
     content: v.optional(v.string()),
-    coverImage: v.optional(v.string())
-    ,
-    icon: v.optional(v.string())
-    ,
-    isPublished: v.optional(v.boolean())
-
+    coverImage: v.optional(v.string()),
+    icon: v.optional(v.string()),
+    isPublished: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const identity = await checkIdentityHandler(ctx);
     const userId = identity.subject;
 
     const { id, ...rest } = args;
-    
+
     const existingDocument = await ctx.db.get(id);
 
-    if(!existingDocument) {
+    if (!existingDocument) {
       throw new Error("Document not found");
     }
 
-    if(existingDocument.userId !== userId) {
+    if (existingDocument.userId !== userId) {
       throw new Error("Not authorized to update this document!");
     }
 
- await ctx.db.patch(id, rest);
+    await ctx.db.patch(id, rest);
+  },
+});
 
-  }
-})
+export const removeDocIcon = mutation({
+  args: { id: v.id("documents") },
+  handler: async (ctx, args) => {
+    const identity = await checkIdentityHandler(ctx);
+
+    const userId = identity.subject;
+
+    const existingDocument = await ctx.db.get(args.id);
+
+    if (!existingDocument) {
+      throw new Error("Document not found");
+    }
+
+    if (existingDocument.userId !== userId) {
+      throw new Error("Not authorized to update this document!");
+    }
+
+    const document = await ctx.db.patch(args.id, {
+      icon: undefined,
+    });
+
+    return document;
+  },
+});
