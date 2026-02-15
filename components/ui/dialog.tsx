@@ -65,6 +65,7 @@ function DialogContent({
         )}
         {...props}
       >
+        <DialogPrimitive.DialogTitle />
         {children}
         {showCloseButton && (
           <DialogPrimitive.Close

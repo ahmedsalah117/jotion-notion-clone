@@ -1,5 +1,6 @@
 "use client"
 import DocumentToolbar from "@/app/(main)/_components/DocumentToolbar";
+import DocumentCover from "@/components/Document-Cover";
 import { EditDocumentContext } from "@/contexts/editDocumentContext";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
@@ -33,7 +34,7 @@ const DocumentDetailsPage = () => {
 
   return (
     <div className="pb-48">
-      <div className="h-[35vh]" />
+      <DocumentCover url={document?.coverImage} />
 
       <div className="md:max-w-3xl lg:max-w-4xl mx-auto">
         <DocumentToolbar initialData={document} />

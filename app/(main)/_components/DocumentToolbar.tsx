@@ -8,6 +8,7 @@ import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import TextareaAutosize from 'react-textarea-autosize';
 import { EditDocumentContext } from '@/contexts/editDocumentContext';
+import { useCoverImage } from "@/hooks/use-cover-image";
 
 
 
@@ -24,7 +25,8 @@ const DocumentToolbar = ({ initialData, preview }: DocumentToolbarProps) => {
   // const [value, setValue] = useState(initialData?.title || "")
 const {setLocalDocTitle, localDocTitle, isEditing, setIsEditing} = useContext(EditDocumentContext)
   const update = useMutation(api.documents.updateDocument);
-const removeDocumentIcon = useMutation(api.documents.removeDocIcon)
+  const removeDocumentIcon = useMutation(api.documents.removeDocIcon);
+  const coverImage = useCoverImage();
   const enableInput = () => {
   // if we are in preview mode, we do not want to allow editing.
     if (preview) return;
@@ -94,7 +96,7 @@ const removeDocumentIcon = useMutation(api.documents.removeDocIcon)
         )}
 
         {!initialData.coverImage && !preview && (
-          <Button onClick={() => {}} className="text-muted-foreground text-xs" variant={"outline"} size={"sm"}>
+          <Button onClick={coverImage.onOpen} className="text-muted-foreground text-xs" variant={"outline"} size={"sm"}>
             <ImageIcon className="h-4 w-4 mr-2" />
             Add cover
           </Button>
@@ -115,7 +117,7 @@ const removeDocumentIcon = useMutation(api.documents.removeDocIcon)
         </>
       ) : (
         <div onClick={enableInput} className="pb-[11.5px] text-5xl font-bold break-words outline-none text-[#3f3f3f] dark:text-[#cfcfcf]">
-          { localDocTitle || "Untitled"}
+          {localDocTitle || "Untitled"}
         </div>
       )}
     </div>
