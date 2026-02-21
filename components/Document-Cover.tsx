@@ -10,6 +10,7 @@ import { useParams } from 'next/navigation';
 import { Id } from '@/convex/_generated/dataModel';
 import { useEdgeStore } from "@/lib/edgestore";
 import Spinner from "./spinner";
+import { Skeleton } from "./ui/skeleton";
 
 
 
@@ -56,4 +57,10 @@ const DocumentCover = ({url, preview}: CoverImageProps) => {
   );
 }
 
+DocumentCover.Skeleton = function CoverSkeleton() {
+  return <Skeleton className="w-full h-[12vh]" />;
+};
+
 export default DocumentCover
+
+

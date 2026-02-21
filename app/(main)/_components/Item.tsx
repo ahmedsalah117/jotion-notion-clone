@@ -51,7 +51,7 @@ const Item = ({ icon: Icon, label, onClick, id, documentIcon, active, expanded, 
       if (!expanded) {
         onExpand?.();
       }
-      // router.push(`/documents/${docId}`);
+      router.push(`/documents/${docId}`);
     });
     toast.promise(promise, {
       loading: "Creating a new page...",
@@ -63,7 +63,9 @@ const Item = ({ icon: Icon, label, onClick, id, documentIcon, active, expanded, 
   const onArchive = (e: React.MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
     if (!id) return;
-    const promise = archive({ id });
+    const promise = archive({ id }).then(() => {
+      router.push("/documents");
+    });
     toast.promise(promise, {
       loading: "Moving to trash...",
       success: "Note moved to trash!",
