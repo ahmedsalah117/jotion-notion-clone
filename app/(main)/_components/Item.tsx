@@ -88,7 +88,7 @@ const Item = ({ icon: Icon, label, onClick, id, documentIcon, active, expanded, 
           <ChevronIcon className="h-4 w-4 shrink-0 text-muted-foreground/50" />
         </div>
       )}
-      {documentIcon ? <div className="shrink-0 mr-2 text-[18px]">{documentIcon}</div> : <Icon className="h-[18px] mr-2 shrink-0 text-muted-foreground" />}
+      {documentIcon ? <div className="shrink-0 mr-2 text-[18px]">{documentIcon}</div> : <Icon className="h-[18px] w-[18px] mr-2 shrink-0 text-muted-foreground" />}
       {/* if the user is updating the document title, we use optimistic update to avoid calling the api handler many times on each key stroke */}
       <span className="truncate">{isEditing && id === document?._id ? localDocTitle : label}</span>
 

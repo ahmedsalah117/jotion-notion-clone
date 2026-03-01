@@ -8,6 +8,7 @@ import { MenuIcon } from 'lucide-react';
 import DocumentTitle from './DocumentTitle';
 import DocumentBanner from "./DocumentBanner";
 import DocActionsMenu from "./DocActionsMenu";
+import PublishDocBtn from "./PublishDocBtn";
 
 interface DocNavbarProps {
   isCollapsed: boolean;
@@ -43,6 +44,7 @@ const DocumentNavbar = ({ isCollapsed, onResetWidth }: DocNavbarProps) => {
           <div className="flex items-center justify-between w-full">
             <DocumentTitle initialData={document} />
             <div className="flex items-center gap-x-2">
+              <PublishDocBtn initialData={document} />
               <DocActionsMenu documentId={document._id} />
             </div>
           </div>
